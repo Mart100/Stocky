@@ -1,0 +1,17 @@
+{
+  "name": "stocky",
+  "version": "0.0.1",
+  "description": "A discord bot",
+  "main": "main.js",
+  "scripts": {
+    "start": "node main.js"
+  },
+  "dependencies": {
+    "discord.js": "^11.4.2",
+    "firebase-admin": "^7.1.1",
+    "iex-api": "0.0.3",
+    "isomorphic-fetch": "^2.2.1",
+    "request": "^2.88.0"
+  },
+  "license": "MIT"
+}

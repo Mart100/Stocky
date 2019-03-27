@@ -1,0 +1,22 @@
+{
+  "leaderboard": { 
+    "permission": "all"
+  },
+  "balance": { 
+    "permission": "all",
+    "accountNeeded": true
+  },
+  "help": { 
+    "permission": "all"
+  },
+  "daily": {
+    "permission": "all",
+    "accountNeeded": true
+  },
+  "profile": {
+    "permission": "all"
+  },
+  "stock": {
+    "permission": "all"
+  }
+}
