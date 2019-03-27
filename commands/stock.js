@@ -1,28 +1,18 @@
-const request = require('request')
 const Discord = require('discord.js')
 const database = require('../scripts/database.js')
-
-// IEX
-const { IEXClient } = require('iex-api')
-const _fetch = require('isomorphic-fetch')
-
-const iex = new IEXClient(_fetch)
-
-
-let avURL = 'https://www.alphavantage.co/query?'
-let apiKey = 'apikey=Y3W76QOX08LU0J1U'
+const stocks = require('../scripts/stocks.js')
 
 module.exports = async (message) => {
 
   let args = message.content.toLowerCase().split(' ')
   let symbol = args[1]
 
-  let companyInfo = await getIEXinfo(symbol)
-  let AVinfo = await getAlphavantageINFO(symbol)
+  let companyInfo = await stocks.getIEXinfo(symbol)
+  let AVinfo = await stocks.getAlphavantageCurrentINFO(symbol)
 
   // if symbol not found. Search company
   if(AVinfo == 'ERR') {
-    let possibleComps = await searchSymbolByCompanyName(args[1])
+    let possibleComps = await stocks.searchSymbolByCompanyName(args[1])
 
     if(possibleComps.length == 0) return message.channel.send('**Nothing found :(**')
     let text = `
@@ -45,14 +35,14 @@ Company     -     Symbol    \n
 
   if(args[2] == 'detailed') return subCommands.detailed(message, companyInfo)
 
-  console.log(companyInfo)
 
   let infoField = `
-    Price: \`${AVinfo.currentPrice}\`
-    PriceDate \`${AVinfo.currentPriceDate}\`
-    CompanyName: \`${companyInfo.companyName}\`
-    Sector: \`${companyInfo.sector}\`
-    Symbol: \`${companyInfo.symbol}\`
+    Price: **${AVinfo.price}**
+    Volume: **${AVinfo.volume}**
+    Change: **${AVinfo.change_percent}**
+    CompanyName: **${companyInfo.companyName}**
+    Sector: **${companyInfo.sector}**
+    Symbol: **${companyInfo.symbol}**
 
     \`s!stock ${symbol} detailed\` for more detailed company info!
 
@@ -80,49 +70,4 @@ subCommands = {
 
     message.channel.send(text)
   }
-}
-
-function getIEXinfo(symbol) {
-  return new Promise((resolve, reject) => {
-    iex.stockCompany(symbol).then(company => {
-      resolve(company)
-    })
-  })
-}
-
-function getAlphavantageINFO(symbol) {
-  return new Promise((resolve, reject) => {
-    request(`${avURL}function=TIME_SERIES_INTRADAY&symbol=${symbol}&interval=1min&${apiKey}`, async (err, res, body) => {
-      // handle errors
-      console.log('Error: ', err)
-
-      // parse body
-      body = JSON.parse(body)
-
-      if(body["Error Message"]) {
-        resolve('ERR')
-        return
-      }
-
-      // send data
-      resolve({
-        currentPrice: Object.values(body["Time Series (1min)"])[0]["1. open"],
-        currentPriceDate: Object.keys(body["Time Series (1min)"])[0]
-      })
-    })
-  })
-}
-
-function searchSymbolByCompanyName(name) {
-  return new Promise((resolve, reject) => {
-    request(`${avURL}function=SYMBOL_SEARCH&keywords=${name}&${apiKey}`, async (err, res, body) => {
-      // handle errors
-      console.log('Error: ', err)
-
-      body = JSON.parse(body)
-
-      // send data
-      resolve(body["bestMatches"])
-    })
-  })
 }
