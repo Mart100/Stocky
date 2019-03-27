@@ -33,7 +33,7 @@ Company     -     Symbol    \n
 
     for(let i in possibleComps) {
       let comp = possibleComps[i]
-      text += `${comp.name}   -   ${comp.symbol}\n`
+      text += `${comp["2. name"]}   -   ${comp["1. symbol"]}\n`
     }
 
 
@@ -115,20 +115,14 @@ function getAlphavantageINFO(symbol) {
 
 function searchSymbolByCompanyName(name) {
   return new Promise((resolve, reject) => {
-    request(`http://d.yimg.com/aq/autoc?query=${name}&region=IN&lang=en-UK&callback=YAHOO.Finance.SymbolSuggest.ssCallback`, async (err, res, body) => {
+    request(`${avURL}function=SYMBOL_SEARCH&keywords=${name}&${apiKey}`, async (err, res, body) => {
       // handle errors
       console.log('Error: ', err)
 
-      body = body.toString()
-
-      // remove unnecasery stuff
-      body = body.replace('YAHOO.Finance.SymbolSuggest.ssCallback(', '').replace(');', '')
-
-      // parse body
       body = JSON.parse(body)
 
       // send data
-      resolve(body["ResultSet"]["Result"])
+      resolve(body["bestMatches"])
     })
   })
 }
