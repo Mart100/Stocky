@@ -41,15 +41,12 @@ module.exports = {
         body = JSON.parse(body)
         
         let nowDate = new Date()
-        console.log(body)
         let intraDayCurrent = await this.getStockIntraDay(symbol, 1)
         intraDayCurrent = intraDayCurrent[0]
 
         if(intraDayCurrent == undefined) return resolve()
 
         let isClosed = Number(intraDayCurrent.minute.replace(':', ''))+10 < Number(nowDate.getHours()+''+nowDate.getMinutes())
-
-        console.log(intraDayCurrent)
         
         if(body.error) return resolve()
         

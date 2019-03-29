@@ -33,7 +33,6 @@ module.exports = {
 
       quote.price = quote.latestPrice
 
-      console.log(quote)
       resolve(quote)
     })
   }

@@ -10,7 +10,6 @@ module.exports = async (message) => {
   let companyInfo = await stocks.getCompanyInfo(symbol)
   let stockInfo = await stocks.getStockInfo(symbol)
   let companyLogo = await stocks.getCompanyLogo(symbol)
-  console.log(stockInfo)
   let closeTime = new Date(Number(stockInfo.closeTime)).toTimeString().split('(')[0]
   let openTime = new Date(Number(stockInfo.openTime)).toTimeString().split('(')[0]
 
@@ -18,7 +17,6 @@ module.exports = async (message) => {
   if(stockInfo == undefined) {
     let possibleComps = await stocks.searchSymbolByCompanyName(args[1])
     if(possibleComps == undefined) {
-      console.log(possibleComps)
       message.channel.send('This situation should never occur :/')
       return
     }
