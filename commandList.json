@@ -18,5 +18,11 @@
   },
   "stock": {
     "permission": "all"
+  },
+  "buy": {
+    "permission": "all"
+  },
+  "mystocks": {
+    "permission": "all"
   }
 }

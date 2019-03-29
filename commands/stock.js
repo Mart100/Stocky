@@ -5,22 +5,27 @@ const stocks = require('../scripts/stocks.js')
 module.exports = async (message) => {
 
   let args = message.content.toLowerCase().split(' ')
-  let symbol = args[1]
+  let symbol = args[1].toUpperCase()
 
-  let companyInfo = await stocks.getIEXinfo(symbol)
-  let AVinfo = await stocks.getAlphavantageCurrentINFO(symbol)
+  let companyInfo = await stocks.getCompanyInfo(symbol)
+  let stockInfo = await stocks.getStockInfo(symbol)
 
   // if symbol not found. Search company
-  if(AVinfo == 'ERR') {
+  if(stockInfo == undefined) {
     let possibleComps = await stocks.searchSymbolByCompanyName(args[1])
-
+    if(possibleComps == undefined) {
+      console.log(possibleComps)
+      message.channel.send('This situation should never occur :/')
+      return
+    }
     if(possibleComps.length == 0) return message.channel.send('**Nothing found :(**')
     let text = `
-**Coudnt find symbol!** 
-Searching for symbols by name instead... :
-Company     -     Symbol    \n
-`
+      **Coudnt find symbol!** 
+      Searching for symbols by name instead... :
+      Company     -     Symbol    \n
+    `
 
+    // add possibleCompanys to text
     for(let i in possibleComps) {
       let comp = possibleComps[i]
       text += `${comp["2. name"]}   -   ${comp["1. symbol"]}\n`
@@ -32,17 +37,19 @@ Company     -     Symbol    \n
     message.channel.send(text)
     return
   }
-
+  
+  // subcommands
   if(args[2] == 'detailed') return subCommands.detailed(message, companyInfo)
+  if(args[2] == 'chart') return subCommands.chart(message)
 
-
+  companyInfo = companyInfo.data
   let infoField = `
-    Price: **${AVinfo.price}**
-    Volume: **${AVinfo.volume}**
-    Change: **${AVinfo.change_percent}**
-    CompanyName: **${companyInfo.companyName}**
+    Price: **${stockInfo.price}**
+    Volume: **${stockInfo.volume}**
+    Change: **${stockInfo.change_percent}**
+    Company Name: **${companyInfo.companyName}**
     Sector: **${companyInfo.sector}**
-    Symbol: **${companyInfo.symbol}**
+    Symbol: **${symbol}**
 
     \`s!stock ${symbol} detailed\` for more detailed company info!
 
@@ -59,15 +66,30 @@ Company     -     Symbol    \n
 
 subCommands = {
   detailed(message, companyInfo) {
-    let text = `__**Detailed info about ${companyInfo.symbol}:**__\n\n`
+    let args = message.content.toLowerCase().split(' ')
+    let symbol = args[1].toUpperCase()
+
+    let from = companyInfo.from
+    companyInfo = companyInfo.data
+    let text = `__**Detailed info about ${symbol}:**__\n\n`
 
     for(let key in companyInfo) {
       let value = companyInfo[key]
 
       text += `**${key}:** \`${value}\` \n`
     }
+    text += `data from: \`${from}\``
 
 
     message.channel.send(text)
+  },
+  async chart(message) {
+    let args = message.content.toLowerCase().split(' ')
+    let symbol = args[1].toUpperCase()
+    let chart = await stocks.getStockChart(symbol, 'day')
+
+    if(chart == 'DATA_UNDEFINED') return message.channel.send('For some reason, Data is undefined. Try again?')
+
+    message.channel.send(new Discord.Attachment(chart))
   }
 }

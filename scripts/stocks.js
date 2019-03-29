@@ -1,12 +1,11 @@
 const request = require('request')
 const _ = require('lodash')
+const charts = require('./charts.js')
 
-// IEX
-const { IEXClient } = require('iex-api')
-const _fetch = require('isomorphic-fetch')
-
-const iex = new IEXClient(_fetch)
-
+// APIS
+const unibit = require('./apis/unibit.js')
+const iex = require('./apis/iex.js')
+const alphavantage = require('./apis/alphavantage.js')
 
 let avURL = 'https://www.alphavantage.co/query?'
 let apiKey = 'apikey=Y3W76QOX08LU0J1U'
@@ -14,45 +13,35 @@ let apiKey = 'apikey=Y3W76QOX08LU0J1U'
 
 
 module.exports = {
-  getIEXinfo(symbol) {
-    return new Promise((resolve, reject) => {
-      iex.stockCompany(symbol).then(company => {
-        resolve(company)
-      })
+  getCompanyInfo(symbol) {
+    return new Promise(async (resolve, reject) => {
+      let data 
+
+      data = await unibit.getCompanyInfo(symbol)
+      if(data != undefined) return resolve({data: data, from: 'unibit'})
+      data = await iex.getCompanyInfo(symbol)
+      if(data != undefined) return resolve({data: data, from: 'iex'})
+
+      resolve('ERR')
     })
   },
+  getStockInfo(symbol, api) {
+    return new Promise(async (resolve, reject) => {
+      let data 
 
-  getAlphavantageCurrentINFO(symbol) {
-    return new Promise((resolve, reject) => {
-      request(`${avURL}function=GLOBAL_QUOTE&symbol=${symbol}&${apiKey}`, async (err, res, body) => {
-        // handle errors
-        console.log('Error: ', err)
+      if((api != undefined) == (api == 'alphavantage')) data = await alphavantage.getStockInfo(symbol)
+      if(data != undefined) return resolve(data)
+      if((api != undefined) == (api == 'unibit')) data = await unibit.getStockInfo(symbol)
+      if(data != undefined) return resolve(data)
 
-        // parse body
-        body = JSON.parse(body)
-
-        data = body["Global Quote"]
-
-        if(_.isEmpty(data)) resolve('ERR')
-
-        // send data
-        resolve({
-          price: data["05. price"],
-          volume: data["06. volume"],
-          change: data["09. change"],
-          change_percent: data["10. change percent"],
-          symbol: data["01. symbol"],
-
-        })
-      })
+      resolve()
     })
   },
-
   searchSymbolByCompanyName(name) {
     return new Promise((resolve, reject) => {
       request(`${avURL}function=SYMBOL_SEARCH&keywords=${name}&${apiKey}`, async (err, res, body) => {
         // handle errors
-        console.log('Error: ', err)
+        if(err) console.log('Error: ', err)
 
         body = JSON.parse(body)
 
@@ -60,6 +49,53 @@ module.exports = {
         resolve(body["bestMatches"])
       })
     })
+  },
+  getStockIntraDay(symbol) {
+    return new Promise((resolve, reject) => {
+      request(`${avURL}function=TIME_SERIES_INTRADAY&symbol=${symbol}&interval=5min&${apiKey}`, async (err, res, body) => {
+        // handle errors
+        if(err) console.log('Error: ', err)
+
+        // parse body
+        body = JSON.parse(body)
+
+        data = body["Time Series (5min)"]
+
+        if(_.isEmpty(data)) return resolve('ERR')
+          
+        resolve(data)
+      })
+    })
+  },
+  // 500x200
+  getStockChart(symbol, time) {
+    return new Promise(async (resolve, reject) => {
+
+      // get data. and translate it into chart data
+      let data = {}
+      let currentDate = new Date()
+      let chartData = []
+      if(time == 'day') {
+        data = await this.getStockIntraDay(symbol)
+        let newData = []
+        for(let dateString in data) {
+          let date = new Date(dateString)
+          if(date.getTime()+86400000 < currentDate.getTime()) continue
+
+          let openPrice = Number(data[dateString]["1. open"])
+
+          chartData.push({time: date.getTime(), price: openPrice})
+        }
+      }
+
+      if(chartData.length == 0) return resolve('DATA_UNDEFINED')
+      let chart = await charts(chartData)
+
+      resolve(chart)
+
+    })
+
   }
 }
 
+ 

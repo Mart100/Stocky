@@ -15,7 +15,10 @@ module.exports = {
   },
   newUser(id) {
     db.collection('users').doc(id).set({
-      balance: 100,
+      balance: 1000,
+      stocks: {
+
+      }
     })
   },
   getUser(id) {
@@ -25,4 +28,7 @@ module.exports = {
       }).catch(err => console.log('err: ', err))
     })
   },
+  updateUser(id, to) {
+    db.collection('users').doc(id).update(to)
+  }
 }
