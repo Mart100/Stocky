@@ -9,6 +9,10 @@ module.exports = async (message) => {
 
   let companyInfo = await stocks.getCompanyInfo(symbol)
   let stockInfo = await stocks.getStockInfo(symbol)
+  let companyLogo = await stocks.getCompanyLogo(symbol)
+  console.log(stockInfo)
+  let closeTime = new Date(Number(stockInfo.closeTime)).toTimeString().split('(')[0]
+  let openTime = new Date(Number(stockInfo.openTime)).toTimeString().split('(')[0]
 
   // if symbol not found. Search company
   if(stockInfo == undefined) {
@@ -45,8 +49,10 @@ module.exports = async (message) => {
   companyInfo = companyInfo.data
   let infoField = `
     Price: **${stockInfo.price}**
-    Volume: **${stockInfo.volume}**
-    Change: **${stockInfo.change_percent}**
+    Closed: **${stockInfo.closed}**
+    Close Time: **${closeTime}**
+    Open Time: **${openTime}**
+    Change: **${stockInfo.changePercent}%**
     Company Name: **${companyInfo.companyName}**
     Sector: **${companyInfo.sector}**
     Symbol: **${symbol}**
@@ -59,6 +65,7 @@ module.exports = async (message) => {
   let Embed = new Discord.RichEmbed()
     .setAuthor('Stocky', 'https://i.imgur.com/dCYvK7M.png')
     .addField(`INFO:`, infoField)
+    .setThumbnail(companyLogo)
     .setColor('#42BEAD')
   message.channel.send(Embed)
 
@@ -90,6 +97,6 @@ subCommands = {
 
     if(chart == 'DATA_UNDEFINED') return message.channel.send('For some reason, Data is undefined. Try again?')
 
-    message.channel.send(new Discord.Attachment(chart))
+    message.channel.send('test',new Discord.Attachment(chart))
   }
 }

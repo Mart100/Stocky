@@ -18,7 +18,7 @@ module.exports = async (message) => {
   for(let stockSymbol in user.stocks) {
     let stock = user.stocks[stockSymbol]
     if(stock.amount == undefined) continue
-    let stockInfo = await stocks.getStockInfo(stockSymbol, 'unibit')
+    let stockInfo = await stocks.getStockInfo(stockSymbol)
     let stockWorth = stockInfo.price*stock.amount
 
     msg += `

@@ -99,7 +99,7 @@ function drawPrices(data) {
   for(let i=1;i<5;i++) {
     let y = i/5 * ch
     if(i > 4) continue
-    let price = (y/ch) * (highestY-lowestY) + lowestY
+    let price = ((ch-y)/ch) * (highestY-lowestY) + lowestY
 
     let priceLength = Math.round(price).toString().length
     let roundPower = Math.pow(10, 4-priceLength)

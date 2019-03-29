@@ -1,7 +1,7 @@
 const request = require('request')
 const _ = require('lodash')
 
-let avURL = 'https://www.alphavantage.co/query?'
+let api_url = 'https://api.unibit.ai/'
 let apiKey = 'sp8z3-wUMIvuz8APwtD2-OC57YEEi1wA'
 
 
@@ -9,7 +9,7 @@ let apiKey = 'sp8z3-wUMIvuz8APwtD2-OC57YEEi1wA'
 module.exports = {
   getCompanyInfo(symbol) {
     return new Promise((resolve, reject) => {
-      request(`https://api.unibit.ai/companyprofile/${symbol}?AccessKey=${apiKey}`, async (err, res, body) => {
+      request(`${api_url}companyprofile/${symbol}?AccessKey=${apiKey}`, async (err, res, body) => {
         body = JSON.parse(body)
 
         resolve({
@@ -26,15 +26,36 @@ module.exports = {
       })
     })
   },
-  getStockInfo(symbol) {
+  getStockIntraDay(symbol, size=100) {
     return new Promise((resolve, reject) => {
-      request(`https://api.unibit.ai/financials/summary/${symbol}?AccessKey=${apiKey}`, async (err, res, body) => {
+      request(`${api_url}realtimestock/${symbol}?size=${size}&AccessKey=${apiKey}`, async (err, res, body) => {
         body = JSON.parse(body)
 
+        resolve(body)
+      })
+    })
+  },
+  getStockInfo(symbol) {
+    return new Promise((resolve, reject) => {
+      request(`${api_url}financials/summary/${symbol}?AccessKey=${apiKey}`, async (err, res, body) => {
+        body = JSON.parse(body)
+        
+        let nowDate = new Date()
+        console.log(body)
+        let intraDayCurrent = await this.getStockIntraDay(symbol, 1)
+        intraDayCurrent = intraDayCurrent[0]
+
+        if(intraDayCurrent == undefined) return resolve()
+
+        let isClosed = Number(intraDayCurrent.minute.replace(':', ''))+10 < Number(nowDate.getHours()+''+nowDate.getMinutes())
+
+        console.log(intraDayCurrent)
+        
         if(body.error) return resolve()
         
         resolve({
-          price: toNum(body.open),
+          price: intraDayCurrent.price,
+          closed: isClosed,
           volume: toNum(body.avg_volume)
         })
       })

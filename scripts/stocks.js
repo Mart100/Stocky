@@ -6,6 +6,7 @@ const charts = require('./charts.js')
 const unibit = require('./apis/unibit.js')
 const iex = require('./apis/iex.js')
 const alphavantage = require('./apis/alphavantage.js')
+const iexcloud = require('./apis/iexcloud.js')
 
 let avURL = 'https://www.alphavantage.co/query?'
 let apiKey = 'apikey=Y3W76QOX08LU0J1U'
@@ -22,17 +23,27 @@ module.exports = {
       data = await iex.getCompanyInfo(symbol)
       if(data != undefined) return resolve({data: data, from: 'iex'})
 
-      resolve('ERR')
+      resolve()
+    })
+  },
+  getCompanyLogo(symbol) {
+    return new Promise(async (resolve, reject) => {
+      let logo 
+
+      logo = iexcloud.getCompanyLogo(symbol)
+
+      resolve(logo)
     })
   },
   getStockInfo(symbol, api) {
     return new Promise(async (resolve, reject) => {
-      let data 
-
-      if((api != undefined) == (api == 'alphavantage')) data = await alphavantage.getStockInfo(symbol)
+      let data
+      if((api != undefined) == (api == 'iexcloud')) data = await iexcloud.getStockInfo(symbol)
       if(data != undefined) return resolve(data)
-      if((api != undefined) == (api == 'unibit')) data = await unibit.getStockInfo(symbol)
-      if(data != undefined) return resolve(data)
+      //if((api != undefined) == (api == 'unibit')) data = await unibit.getStockInfo(symbol)
+      //if(data != undefined) return resolve(data)
+      //if((api != undefined) == (api == 'alphavantage')) data = await alphavantage.getStockInfo(symbol)
+      //if(data != undefined) return resolve(data)
 
       resolve()
     })
