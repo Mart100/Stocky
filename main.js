@@ -1,6 +1,7 @@
 const Discord = require('discord.js')
 const bot = new Discord.Client()
-const token = 'NTYwMjI0MzIzOTIzNjA3NTYy.D3w2ZA.xAHg5j9nGT8jIkzxTg4Rb2lEvXs'
+const env = require('node-env-file')
+env(__dirname + '/.env', {raise: false})
 const prefix = 's!'
 
 // require scripts
@@ -26,4 +27,4 @@ bot.on('ready', async guild => {
 bot.on('message',  (message) => { commands(message) })
 
 
-bot.login(token)
+bot.login(process.env["BOT_TOKEN"])
